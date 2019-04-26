@@ -109,4 +109,4 @@ venv.bak/
 # some files to not be tracked in git index
 /Data_analysis_visualization/scrape_mathematicans.ipynb
 /Data_analysis_visualization/scrape_mathematicans_exercises.ipynb
-/Data_anlysis_visualization/wind_energy_analysis_ver_0.ipynb
+/Data_analysis_visualization/wind_energy_analysis_ver_0.ipynb
