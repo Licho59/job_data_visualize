@@ -116,7 +116,7 @@ def wind_1(year, month_number=None):
     wind_m = wind_daily(year, month_number)/10**3
     month = month_name(month_number)
     m_avg = wind_m.iloc[:,0].mean()
-    
+   
     data = [go.Bar(x=wind_m.index, y=wind_m['Wind_Daily(MWh)'].values, marker={'color':'orange'})]      
     layout = {'xaxis':{'title':'Days'}, 'yaxis':{'title':'Total Power (GWh)'},
              'shapes':[{'type':'line', 'x0':wind_m.index[0], 'x1':wind_m.index[-1], 'y0':m_avg, 'y1':m_avg,
@@ -168,7 +168,7 @@ def wind_3(year):
     
 
 
-def wind_4(year,plot='line'):
+def wind_4(year, graph='line'):
     """
     Return: linear or bar graph for cumulative amount of wind energy generated from the beginning of the year
     (some differences in plotting methods - with cufflinks tools and without it).
@@ -178,55 +178,56 @@ def wind_4(year,plot='line'):
     wind_y = wind_daily(year, months)/10**3
     wind_grow = wind_y.cumsum()
     last_day = round(wind_grow.max()[0], 1) # total value for the last day of the plot
-    if plot=='line':
-        return wind_grow.plot(kind='scatter',
-                    width=2,
-                    annotations=[dict(
-                                x=wind_y.index[-1], y=last_day,
-                                text='Total=' + str(last_day) + ' GWh', textangle=0,
-                                showarror=True, arrowhead=1, ax=0, ay=-20)],
-                    xTitle='Days', yTitle='Total Power (GWh)', color='green',
-                    title=f"Wind Power Cumulation in {year}", theme='solar', dimensions=(800, 350))
+    if graph=='line':
+        data = [go.Scatter(x=wind_grow.index,
+                           y=wind_grow['Wind_Daily(MWh)'].values,
+                           name='Total=\n'+str(round(wind_grow.iloc[-1,0], 1)) + ' GWh')]
+
       
     else:
         data = [go.Bar(x=wind_grow.index,
                            y=wind_grow['Wind_Daily(MWh)'].values,
                            name='Total=\n'+str(round(wind_grow.iloc[-1,0], 1)) + ' GWh')]
-        layout = go.Layout(xaxis=dict(title='Days'), yaxis=dict(title='Total Power (GWh)'),
+    layout = go.Layout(xaxis=dict(title='Days'),
+                           yaxis=dict(title='Total Power (GWh)'),
                            title="Growth of Wind Power Generation in {}".format(year),
                            height=450, width=900,
                            showlegend=True,
                            legend=dict(x=1.0, y=1.0))
        
-        plot(data,layout)
-
-
-def wind_4a(plot='line'):
+    plot(go.Figure(data=data, layout=layout))
+       
+       
+def wind_4a():
     """
-    Return: linear or bar graph for cumulative amount of wind energy generated from the beginning of the year
-    (some differences in plotting methods - with cufflinks tools and without it).
-    Bar chart is returned with any kind of argument put after year number( for example: (2019, 1) or (2018,'bar'))
+    Return: Separate linear graphs for each year in data folder with cumulative amount of wind energy generated.
     """
     for year in years_list():
         months = len(files_list(year)) + 1
-        wind_y = wind_daily(year, months)/10**3
-        wind_grow = wind_y.cumsum()
-        print(wind_grow.index)
+        wind_grow = (wind_daily(year, months)/10**3).cumsum()
         last_day = round(wind_grow.max()[0], 1) # total value for the last day of the plot
-
-        if plot=='line':
-            wind_grow.plot(kind='scatter',
-                        x=wind_grow.index[0], y=wind_grow[year].values,)
-                        #width=2,
-                        #annotations=[dict(x=wind_y.index[-1], y=last_day,
-                         #               text='Total=' + str(last_day) + ' GWh', textangle=0,
-                          #              showarror=True, arrowhead=1, ax=0, ay=-20)],
-                        #xTitle='Days', yTitle='Total Power (GWh)', color='green',
-                        #title=f"Wind Power Cumulation in {year}",
-                        #theme='solar', dimensions =(800, 350))
+       
+        data = [go.Scatter(x=wind_grow.index, y=wind_grow['Wind_Daily(MWh)'].values, marker={'color':'orange'})]
+    
+        
+        annotations = [{'x':wind_grow.index[-1],'y':last_day,
+                        'text':'Total=' + str(last_day) + ' GWh',
+                        'textangle':0, 'showarrow':True, 'arrowhead':1, 'ax':0, 'ay':-20}]
+        
+        
+        layout = {'xaxis':{'title':'Days'},
+                'yaxis':{'title':'Total Power(GWh)'},
+                'title':f'Wind Power Cumulation in {year}',
+                'annotations':annotations}
+    
+        plot(go.Figure(data=data, layout=layout))
+        time.sleep(5)
 
 
 def wind_4b():
+    """
+    Return: A single graph of number of plots for every year of wind generation's cumulative value
+    """
     data = []
     years = years_list()
 
@@ -241,14 +242,13 @@ def wind_4b():
         data.append(trace)
 
     layout = {'xaxis':{'title':'Days of year'}, 'yaxis':{'title':'Total Power (TWh)'},
-             'title':'Wind Power Generation in Years',
-             'width':850, 'height':400}
+             'title':'Wind Power Generation in Years'}
     plot(go.Figure(data=data, layout=layout))
 
 
 def wind_5(year):
     """
-    Return: plot showing an average hour wind generation for given year
+    Return: A plot showing an average hour wind generation for a given year
     """
     months = len(files_list(year)) + 1
     df = wind_hourly(year, months)
@@ -316,13 +316,12 @@ def wind_6(year):
                        'xaxis':{'title':'Hours'}, 'yaxis':{'title':'Avg Power'},
                        'showlegend':False,
                        'width':900, 'height':800})
-    plot(fig);    
-
-
+    plot(fig) 
 
 
 
 # Used one time for given year to make transformed files and save them into wind_csv_ready folder
+
 for year in years_list():
     for month in range(1, len(years_list()) + 1):
         save_clean_data(year, month)
@@ -335,16 +334,15 @@ for year in years_list():
 
 #wind_3(2018)
     
-for year in years_list(): wind_3(year); time.sleep(3)
+#for year in years_list(): wind_3(year); time.sleep(3)
 
 
-#wind_4(2017)
-
+#wind_4(2017, 'line')
 
 #wind_4a()
 
 
-#wind_4b()
+wind_4b()
 
 
 #wind_5(2019)

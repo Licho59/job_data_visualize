@@ -72,6 +72,9 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# VisualStudioCode
+/Data_analysis_visualization/.vscode
+
 # pyenv
 .python-version
 
