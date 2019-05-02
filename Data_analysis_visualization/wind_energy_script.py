@@ -1,7 +1,7 @@
-
 # coding: utf-8
 
 import os, re, random, time
+import argparse
 from glob import glob
 from datetime import date
 import pandas as pd
@@ -20,11 +20,11 @@ def get_file(template):
 
 
 def get_raw_filename(year, month):
-    return get_file(PATHNAME + f'./Data/wind_csv/{year}/PL_GEN_WIATR_{year}{month:02}*.csv')
+    return get_file(PATHNAME + f'/Data/wind_csv/{year}/PL_GEN_WIATR_{year}{month:02}*.csv')
 
 
 def transformed_filename(year, month):
-    return PATHNAME + f'./Data/wind_csv_ready/{year}/{year}{month:02}.csv'
+    return PATHNAME + f'/Data/wind_csv_ready/{year}/{year}{month:02}.csv'
 
 
 def get_transformed_filename(year, month):
@@ -32,9 +32,13 @@ def get_transformed_filename(year, month):
 
 
 def files_list(year):
-    # list of all csv files located in wind_csv_ready folder
-    return sorted(glob(PATHNAME + f'./Data/wind_csv_ready/{year}/*.csv')) 
+    # list of all csv files located in wind_csv_ready folder for given year
+    return sorted(glob(PATHNAME + f'/Data/wind_csv_ready/{year}/*.csv'))
 
+
+def raw_files_list(year):
+    return sorted(glob(PATHNAME + f'/Data/wind_csv/{year}/*.csv'))
+    
 
 def save_clean_data(year, month_num):
     df = pd.read_csv(get_raw_filename(year, month_num), encoding='iso 8859-1', sep=';').iloc[:,[0, 1, 2]]
@@ -54,7 +58,7 @@ def wind_hourly(year, month_num):
     Return: dataframe either for month's wind power generation or for all months - to use for visualization, analysis,
     modelling.
     """
-    list_length = len(files_list(year)) 
+    list_length = len(files_list(year))
     # preparing dataframe either for all months in year or for only one month
     if month_num == list_length + 1:
         df_all = [get_clean_data(year, month_num) for month_num in range(1, list_length+1)]
@@ -87,19 +91,19 @@ def month_names(months):
     return [month_name(month_num) for month_num in range(1, months)]
 
 def years_list():
-    return os.listdir(PATHNAME + './Data/wind_csv')[1:]
+    return os.listdir(PATHNAME + '/Data/wind_csv')[1:]
 
 
 """
-Names for graphs functions:
-      wind_1 - daily wind generation for month
-      wind_2 - daily wind generation for year
-      wind_3 - monthly wind generation for year
-      wind_4 - growth of generation (cumulative) - line or bar - for year
-      wind_4a - cumulative growth of generation for each year
-      wind_4b - cumulative growth of generation for all years
-      wind_5 - average hour generation for year
-      wind_6 - hour wind generation for each month
+Names for graph functions:
+      wind_1(year, month_number=None)   # daily wind generation for month
+      wind_2(year)                      # daily wind generation for year
+      wind_3(year)                      # monthly wind generation for year
+      wind_4(year, graph='line')        # growth of generation for year                                         # (cumulative) - line or bar
+      wind_4a()                         # cumulative growth of generation for                                   # each year
+      wind_4b()                         # cumulative growth of generation for                                   # all years
+      wind_5(year)                      # average hour generation for year
+      wind_6(year)                      # hour wind generation for each month
 """
 
 def wind_1(year, month_number=None):
@@ -127,7 +131,7 @@ def wind_1(year, month_number=None):
               'autosize':True,
               'title':f'Generation of Wind Power in {month} of {year}'}
     plot(go.Figure(data=data, layout=layout))
-
+    
 
 def wind_2(year):
     """
@@ -284,7 +288,7 @@ def wind_6(year):
     m_names = month_names(months)
     fig = tls.make_subplots(rows=rows, cols=cols,
                             shared_xaxes=True, shared_yaxes=True,
-                            #subplot_titles=month_names,
+                            #subplot_titles=m_names,
                             print_grid=False)
     row, col = 1, 0
     for month_num in range(1, months+1):
@@ -319,33 +323,53 @@ def wind_6(year):
     plot(fig) 
 
 
+def parse_arguments():
+    years = years_list()
+    months = 13
+    #months = len(files_list(year)) + 1
+    parser = argparse.ArgumentParser(
+        description="Plotting graphs coming from wind energy analyses.\n Numbers for graph functions:\nwind_1(year, month_number=None) - daily wind generation for month; \nwind_2(year) - daily wind generation for year; \nwind_3(year) - monthly wind generation for year; \nwind_4(year, graph='line') - growth of generation for a given year; \nwind_4a() - separate plots for growth of generation for each year in data; \nwind_4b() - joint plot for growth of generation for all years; \nwind_5(year) - average hour generation for year; \nwind_6(year) - hour wind generation for each month")
 
-# Used one time for given year to make transformed files and save them into wind_csv_ready folder
+    parser.add_argument('graph_number')
+    parser.add_argument('-y', '--year', type=str, choices=years,
+                        help='Provide a year number as an integer')
 
-for year in years_list():
-    for month in range(1, len(years_list()) + 1):
-        save_clean_data(year, month)
-
-#wind_1(2019)
-
-
-#wind_2(2017)
-
-
-#wind_3(2018)
+    parser.add_argument('-m', '--month', type=int, choices=list(range(1, months)),
+                        help='Provide a number of month for expected plot')
+    parser.add_argument('-i', '--info', help='get description for argparse')
+    parser.add_argument('-b', default='line', help='get bar plot if invoked')
+    args = parser.parse_args()
     
-#for year in years_list(): wind_3(year); time.sleep(3)
+    choices = ['1', '2', '3', '4', '4a', '4b', '5', '6']
+    
+    if args.info:
+        print(parser.description)
+    elif args.graph_number == '1':
+        wind_1(args.year, args.month)
+    elif args.graph_number == '2':
+        wind_2(args.year)
+    elif args.graph_number == '3':
+        wind_3(args.year)
+    elif args.graph_number == '4':
+        wind_4(args.year, args.b)
+    elif args.graph_number == '4a':
+        wind_4a()
+    elif args.graph_number == '4b':
+        wind_4b()
+    elif args.graph_number == '5':
+        wind_5(args.year)
+    elif args.graph_number == '6':
+        wind_6(args.year)
+    elif args.graph_number not in choices:
+        print('Wrong number! With a <filename> use [-h] or [-i] option')
 
 
-#wind_4(2017, 'line')
+if __name__ == "__main__":
+    for year in years_list():
+        if raw_files_list(year) == files_list(year):
+            continue
+        else:
+            for month in range(1, len(raw_files_list(year)) + 1):
+                save_clean_data(year, month)
 
-#wind_4a()
-
-
-wind_4b()
-
-
-#wind_5(2019)
-
-
-#wind_6(2019)
+parse_arguments()
