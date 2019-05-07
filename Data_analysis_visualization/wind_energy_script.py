@@ -14,21 +14,27 @@ def get_file(template):
     assert len(filenames) == 1
     return filenames[0]
 
+
 def get_raw_filename(year, month):
     return get_file(PATHNAME + f'/Data/wind_csv/{year}/PL_GEN_WIATR_{year}{month:02}*.csv')
+
 
 def transformed_filename(year, month):
     return PATHNAME + f'/Data/wind_csv_ready/{year}/{year}{month:02}.csv'
 
+
 def get_transformed_filename(year, month):
     return get_file(transformed_filename(year, month))
+
 
 def raw_files_list(year):
     return sorted(glob(PATHNAME + f'/Data/wind_csv/{year}/*.csv'))
 
+
 def files_list(year):
     # list of all csv files located in wind_csv_ready folder for given year
     return sorted(glob(PATHNAME + '/Data/wind_csv_ready/{}/*.csv'.format(year)))
+
 
 def save_clean_data(year, month_num):
     df = pd.read_csv(get_raw_filename(year, month_num),
@@ -40,8 +46,10 @@ def save_clean_data(year, month_num):
         ',', '.').astype(float)
     df.to_csv(transformed_filename(year, month_num), index=None, header=True)
 
+
 def get_clean_data(year, month):
     return pd.read_csv(get_transformed_filename(year, month))
+
 
 def wind_hourly(year, month_num):
     """
@@ -61,6 +69,7 @@ def wind_hourly(year, month_num):
     df['Date'] = pd.to_datetime(df['Date'].astype('str'))
     return df
 
+
 def wind_daily(year, month_num):
     """
     Return: dataframe of wind generation where indexing is by day values not by hours
@@ -72,17 +81,21 @@ def wind_daily(year, month_num):
         columns={'Total_Wind_Power(MWh)': 'Wind_Daily(MWh)'}, inplace=True)
     return df_days
 
+
 def month_name(month_num):
     """
     Function month_name() returns name of month  to use it in formatting strings for plotting labels. 
     """
     return date(1990, int(month_num), 1).strftime('%B')
 
+
 def month_names(months):
     return [month_name(month_num) for month_num in range(1, months)]
 
+
 def years_list():
     return sorted(os.listdir(PATHNAME + '/Data/wind_csv'))
+
 
 plot_description = "Plotting graphs coming from wind energy analyses.\n Numbers for graph functions:\nwind_1(year, month_number=None) - daily wind generation for month; \nwind_2(year) - daily wind generation for year; \nwind_3(year) - monthly wind generation for year; \nwind_4(year, graph='line') - growth of generation for a given year; \nwind_4a() - separate plots for growth of generation for each year in data; \nwind_4b() - joint plot for growth of generation for all years; \nwind_4c() - total yearly generation for all years; \nwind_5(year) - average hour generation for year; \nwind_5a(year) - separate hour average generation for echa month in given year; \nwind_6(year) - hour wind generation for each month)"
 
@@ -114,6 +127,7 @@ def wind_1(year, month_number=None):
               'title': f'Generation of Wind Power in {month} of {year}'}
     plot(go.Figure(data=data, layout=layout))
 
+
 def wind_2(year):
     """
     Return: plot presenting wind power generation for each day of given year
@@ -130,6 +144,7 @@ def wind_2(year):
     layout = {'xaxis': {'title': 'Days'}, 'yaxis': {'title': 'Total Power (GWh)'},
               'title': f'Generation of Wind Power in {year}'}
     plot(go.Figure(data=data, layout=layout))
+
 
 def wind_3(year):
     """
@@ -150,6 +165,7 @@ def wind_3(year):
                        # showlegend=True)
                        )
     plot(go.Figure(data=data, layout=layout))
+
 
 def wind_4(year, graph=None):
     """
@@ -179,6 +195,7 @@ def wind_4(year, graph=None):
 
     plot(go.Figure(data=data, layout=layout))
 
+
 def wind_4a():
     """
     Return: Separate linear graphs for each year in data folder with cumulative amount of wind energy generated.
@@ -200,6 +217,7 @@ def wind_4a():
                   'annotations': annotations}
         plot(go.Figure(data=data, layout=layout))
         time.sleep(5)
+
 
 def wind_4b():
     """
@@ -231,6 +249,7 @@ def wind_4b():
     layout = {'xaxis': {'title': 'Days of year'}, 'yaxis': {'title': 'Total Power (TWh)'},
               'title': 'Wind Power Generation in Years'}
     plot(go.Figure(data=data, layout=layout))
+
     
 def wind_4c():
     """
@@ -247,6 +266,7 @@ def wind_4c():
     layout = {'xaxis': {'title': 'Years'}, 'yaxis': {'title': 'Total Generation (GWh)'},
               'title': 'Wind Power Generation in Years'}
     plot(go.Figure(data=data, layout=layout))
+
 
 def wind_5(year):
     """
@@ -272,6 +292,7 @@ def wind_5(year):
               'title': f"Wind Generation per Hour in {year}"}
 
     plot(go.Figure(data=data, layout=layout))
+
 
 def wind_6(year):
     """
@@ -315,6 +336,7 @@ def wind_6(year):
                        'xaxis': {'title': 'Hours'}, 'yaxis': {'title': 'Avg Power'},
                        'showlegend': False})
     plot(fig)
+
 
 def parse_arguments():
     years = sorted(years_list())
