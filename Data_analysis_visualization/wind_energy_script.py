@@ -34,13 +34,8 @@ def raw_files_list(year):
 def files_list(year):
     # list of all csv files located in wind_csv_ready folder for given year
     return sorted(glob(PATHNAME + '/Data/wind_csv_ready/{}/*.csv'.format(year)))
-<<<<<<< HEAD
 
 
-=======
-
-    
->>>>>>> 9b14beecbfd45e3f0d4ccfa5d1f4411945a2abb8
 def save_clean_data(year, month_num):
     df = pd.read_csv(get_raw_filename(year, month_num),
                      encoding='iso 8859-1', sep=';').iloc[:, [0, 1, 2]]
@@ -65,12 +60,8 @@ def wind_hourly(year, month_num):
     list_length = len(files_list(year))
     # preparing dataframe either for all months in year or for only one month
     if month_num == list_length + 1:
-<<<<<<< HEAD
         df_all = [get_clean_data(year, month_num)
                   for month_num in range(1, month_num)]
-=======
-        df_all = [get_clean_data(year, month_num) for month_num in range(1, month_num)]
->>>>>>> 9b14beecbfd45e3f0d4ccfa5d1f4411945a2abb8
         df = pd.concat(df_all)
     else:
         df = get_clean_data(year, month_num)
@@ -103,11 +94,7 @@ def month_names(months):
 
 
 def years_list():
-<<<<<<< HEAD
     return sorted(os.listdir(PATHNAME + '/Data/wind_csv'))
-=======
-    return sorted(os.listdir(PATHNAME + '/Data/wind_csv'))[1:]
->>>>>>> 9b14beecbfd45e3f0d4ccfa5d1f4411945a2abb8
 
 
 plot_description = "Plotting graphs coming from wind energy analyses.\n Numbers for graph functions:\nwind_1(year, month_number=None) - daily wind generation for month; \nwind_2(year) - daily wind generation for year; \nwind_3(year) - monthly wind generation for year; \nwind_4(year, graph='line') - growth of generation for a given year; \nwind_4a() - separate plots for growth of generation for each year in data; \nwind_4b() - joint plot for growth of generation for all years; \nwind_4c() - total yearly generation for all years; \nwind_5(year) - average hour generation for year; \nwind_5a(year) - separate hour average generation for echa month in given year; \nwind_6(year) - hour wind generation for each month)"
@@ -173,12 +160,8 @@ def wind_3(year):
     data = [go.Bar(x=m_names, y=wind_monthly.iloc[:, 0],
                    marker=dict(color='limegreen'), name='Power by Month')]
     layout = go.Layout(xaxis=dict(title='Months'), yaxis=dict(title='Total Power (GWh)'),
-<<<<<<< HEAD
                        title="Monthly Wind Power Generation in {}".format(
                            year),
-=======
-                       title="Monthly Wind Power Generation in {}".format(year),
->>>>>>> 9b14beecbfd45e3f0d4ccfa5d1f4411945a2abb8
                        # showlegend=True)
                        )
     plot(go.Figure(data=data, layout=layout))
@@ -204,20 +187,12 @@ def wind_4(year, graph=None):
                        y=wind_grow['Wind_Daily(MWh)'].values,
                        name='Total=\n' + str(round(wind_grow.iloc[-1, 0], 1)) + ' GWh')]
     layout = go.Layout(xaxis=dict(title='Days'),
-<<<<<<< HEAD
                        yaxis=dict(title='Total Power (GWh)'),
                        title="Growth of Wind Power Generation in {}".format(
                            year),
                        showlegend=True,
                        legend=dict(x=1.0, y=1.0))
 
-=======
-                           yaxis=dict(title='Total Power (GWh)'),
-                           title="Growth of Wind Power Generation in {}".format(year),
-                           showlegend=True,
-                           legend=dict(x=1.0, y=1.0))
-       
->>>>>>> 9b14beecbfd45e3f0d4ccfa5d1f4411945a2abb8
     plot(go.Figure(data=data, layout=layout))
 
 
@@ -306,7 +281,6 @@ def wind_5(year):
 
     data = [go.Bar(x=h_wind.index, y=h_wind.values)]
     layout = {'shapes': [{'type': 'line',
-<<<<<<< HEAD
                           'x0': h_wind.index[0], 'y0': hour_avg, 'x1': len(h_wind.index), 'y1': hour_avg,
                           'line': {'color': 'red', 'width': 2, 'dash': 'longdash'}}],
               'showlegend': False,
@@ -316,17 +290,6 @@ def wind_5(year):
               'xaxis': {'title': 'Hours'},
               'yaxis': {'title': 'Generation by Hour (MWh)'},
               'title': f"Wind Generation per Hour in {year}"}
-=======
-                        'x0': h_wind.index[0], 'y0': hour_avg, 'x1': len(h_wind.index), 'y1': hour_avg,
-                        'line': {'color': 'red', 'width': 2, 'dash': 'longdash'}}],
-            'showlegend':False,
-            'annotations': [{'x': h_wind.index[-10], 'y': hour_avg,
-                            'text': 'Avg Power=' + str(round(hour_avg, 1)) + ' MWh',
-                             'showarrow':True, 'arrowhead':1, 'ax':0, 'ay':-30}],
-            'xaxis': {'title': 'Hours'},
-            'yaxis': {'title': 'Generation by Hour (MWh)'},
-            'title':f"Wind Generation per Hour in {year}"}
->>>>>>> 9b14beecbfd45e3f0d4ccfa5d1f4411945a2abb8
 
     plot(go.Figure(data=data, layout=layout))
 
@@ -369,17 +332,10 @@ def wind_6(year):
         fig.append_trace(trace_month_num, row=row, col=col)
         fig.append_trace(trace_avg, row=row, col=col)
 
-<<<<<<< HEAD
     fig.layout.update({'title': 'Average Hour Wind Generation in ' + f'{year}',
                        'xaxis': {'title': 'Hours'}, 'yaxis': {'title': 'Avg Power'},
                        'showlegend': False})
     plot(fig)
-=======
-    fig.layout.update({'title':'Average Hour Wind Generation in ' + f'{year}',
-                       'xaxis':{'title':'Hours'}, 'yaxis':{'title':'Avg Power'},
-                       'showlegend':False})
-    plot(fig) 
->>>>>>> 9b14beecbfd45e3f0d4ccfa5d1f4411945a2abb8
 
 
 def parse_arguments():
@@ -393,7 +349,6 @@ def parse_arguments():
 
     parser.add_argument('-m', '--month', type=int, choices=list(range(1, 13)),
                         help='Provide a number of month for expected plot')
-<<<<<<< HEAD
     parser.add_argument('-i', '--info', action='store_true',
                         help='get description for argparse')
     parser.add_argument('-b', default='line',
@@ -406,18 +361,6 @@ def parse_arguments():
 
     if args.info:
         print(parser.description)
-=======
-    parser.add_argument('-i', '--info', action='store_true', help='get description for argparse')
-    parser.add_argument('-b', default='line', action='store_true', help='get bar plot if invoked')
-    parser.add_argument('-s', '--sleep', type=int, default=5, help='get wait in action')
-    args = parser.parse_args()
-    
-    choices = ['1', '2', '3', '3a', '4', '4a', '4b', '5', '5a', '6']
-    
-    if args.info:
-        print(parser.description)
-    
->>>>>>> 9b14beecbfd45e3f0d4ccfa5d1f4411945a2abb8
     if args.graph_number == '1':
         wind_1(args.year, args.month)
     elif args.graph_number == '2':
@@ -445,12 +388,8 @@ def parse_arguments():
     elif args.graph_number == '6':
         wind_6(args.year)
     elif args.graph_number not in choices:
-<<<<<<< HEAD
         print(
             '\n\t!WRONG number! Use [-h] or [-i] option to get more info on module working.\n')
-=======
-        print('\n\t!WRONG number! Use [-h] or [-i] option to get more info on module working.\n')
->>>>>>> 9b14beecbfd45e3f0d4ccfa5d1f4411945a2abb8
 
 
 if __name__ == "__main__":
