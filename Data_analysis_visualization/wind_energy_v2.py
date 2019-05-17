@@ -145,8 +145,11 @@ def month_names(months):
 
 
 def years_list():
-    return sorted(os.listdir(PATHNAME + '/Data/wind_csv'))
-    
+    whole_list = os.listdir(PATHNAME + '/Data/wind_csv')
+    if '.DS_Store' in whole_list:
+        return sorted(whole_list)[1:]
+    else:
+        return sorted(whole_list)
 
 def get_random_colors():
     colors = webcolors.CSS3_NAMES_TO_HEX
@@ -318,7 +321,7 @@ def wind_4c():
     for year in years:
         months = len(files_list(year)) + 1
         wind_grow = (wind_daily(year, months) / 10**3).resample('Y').sum()
-        trace = go.Bar(x=wind_grow.index.strftime('%Y'),
+        trace = go.Bar(x=wind_grow.index.strftime('%Y...'),
                        y=wind_grow['Wind_Daily(MWh)'], name=year)
         data.append(trace)
     layout = {'xaxis': {'title': 'Years'}, 'yaxis': {'title': 'Total Generation (GWh)'},
@@ -404,11 +407,11 @@ def parse_arguments():
     
     parser = argparse.ArgumentParser(description= plot_description)
     
-    parser.add_argument('graph_number', type=str,
+    parser.add_argument('graph_number', type=str, nargs='?',
         choices=['1', '2', '3', '3a', '4', '4a', '4b', '4c', '5', '5a', '6'])
-    parser.add_argument('-y','--year', type=str, choices=years,
+    parser.add_argument('-y','--year', choices=years, default=years[0],
                         help='Provide a year number as an integer')
-    parser.add_argument('-m', '--month', type=int, choices=list(range(1, 13)),
+    parser.add_argument('-m', '--month', type=int, choices=list(range(1, 13)), default=list(range(1,13))[0],
                         help='Provide a number of month for expected plot')
     parser.add_argument('-i', '--info', action='store_true',
                         help='get description for argparse')
@@ -422,8 +425,8 @@ def parse_arguments():
     if args.info:
         print(parser.description)
     
-    if args.graph_number == '1' and args.year:
-        wind_1(year)
+    if args.graph_number == '1':
+        wind_1(args.year, args.month)
     elif args.graph_number == '2':
         wind_2(args.year)
     elif args.graph_number == '3':
