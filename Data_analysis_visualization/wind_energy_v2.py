@@ -53,18 +53,6 @@ def get_transformed_filename(year, month):
     return get_file(transformed_filename(year, month))
 
 
-def raw_files_list(year):
-    raw_files, month_numbers = [], []
-    for month_num in range(1, 13):
-        try:
-            file = get_raw_filename(year, month_num)
-            raw_files.append(file)
-            month_numbers.append(month_num)
-        except:
-            continue
-    return raw_files, month_numbers
-
-
 def files_list(year):
     # list of all csv files located in wind_csv_ready folder for given year
     ready_list = sorted(glob(f'./Data/wind_csv_ready/{year}/*.csv'))
@@ -83,9 +71,6 @@ def files_list(year):
                 f'There is no data for {year} year. You should try to download it from PSE webpage.')
     return ready_list
     
-    
-    return sorted(glob(PATHNAME + '/Data/wind_csv_ready/{}/*.csv'.format(year)))
-
 
 def save_clean_data(year, month_num):
     df = pd.read_csv(get_raw_filename(year, month_num),
@@ -99,6 +84,8 @@ def save_clean_data(year, month_num):
 
 
 def get_clean_data(year, month):
+    if not os.path.exists(f'./Data/wind_csv_ready/{year}/{year}{month}.csv'):
+        save_clean_data(year, month)
     return pd.read_csv(get_transformed_filename(year, month))
 
 
@@ -108,11 +95,11 @@ def wind_hourly(year, month_num):
     Return: dataframe either for month's wind power generation or for all months - to use for visualization, analysis,
     modelling.
     """
-    list_length = len(files_list(year))
+    raw_files_list = get_raw_files_list(year)[1]
     # preparing dataframe either for all months in year or for only one month
-    if month_num == list_length + 1:
+    if month_num > len(raw_files_list):
         df_all = [get_clean_data(year, month_num)
-                  for month_num in get_raw_files_list(year)[1]]
+                  for month_num in raw_files_list]
         df = pd.concat(df_all)
     else:
         df = get_clean_data(year, month_num)
@@ -126,8 +113,7 @@ def wind_daily(year, month_num):
     Return: dataframe of wind generation where indexing is by day values not by hours
     """
     # resampled data from hours to days
-    df_days = wind_hourly(year, month_num).set_index(
-        'Date').resample('D').sum()
+    df_days = wind_hourly(year, month_num).set_index('Date').resample('D').sum()
     df_days.rename(
         columns={'Total_Wind_Power(MWh)': 'Wind_Daily(MWh)'}, inplace=True)
     return df_days
@@ -362,10 +348,8 @@ def wind_6(year):
     if months % cols == 0:
         rows = rows - 1
 
-    m_names = month_names(months)
     fig = tls.make_subplots(rows=rows, cols=cols,
                             shared_xaxes=True, shared_yaxes=True,
-                            #subplot_titles=m_names,
                             print_grid=False)
     row, col = 1, 0
     for month_num in range(1, months + 1):
@@ -376,7 +360,6 @@ def wind_6(year):
         h_wind = df.pivot_table(
             index='Date', columns='Time', values='Total_Wind_Power(MWh)').mean()
         # average value of wind energy for all day
-        day_avg = h_wind.mean()
         hour_avg = int(h_wind.mean())
         trace_month_num = go.Bar(x=h_wind.index, y=h_wind.values)
         trace_avg = go.Scatter(
@@ -404,10 +387,9 @@ def parse_arguments():
     
     parser = argparse.ArgumentParser(description= plot_description)
     
-    parser.add_argument('graph_number', type=str,
+    parser.add_argument('graph_number', type=str, nargs='?',
         choices=['1', '2', '3', '3a', '4', '4a', '4b', '4c', '5', '5a', '6'])
-    parser.add_argument('-y','--year', type=str, choices=years,
-                        help='Provide a year number as an integer')
+    parser.add_argument('-y','--year', type=str, choices=years, default=years                       [-1], help='Provide a year number as an integer')
     parser.add_argument('-m', '--month', type=int, choices=list(range(1, 13)),
                         help='Provide a number of month for expected plot')
     parser.add_argument('-i', '--info', action='store_true',
@@ -422,8 +404,8 @@ def parse_arguments():
     if args.info:
         print(parser.description)
     
-    if args.graph_number == '1' and args.year:
-        wind_1(year)
+    if args.graph_number == '1':
+        wind_1(args.year, args.month)
     elif args.graph_number == '2':
         wind_2(args.year)
     elif args.graph_number == '3':
@@ -450,7 +432,7 @@ def parse_arguments():
         wind_6(args.year)
     elif args.graph_number not in graph:
         print(
-            '\n\t!WRONG number! Use [-h] or [-i] option to get more info on module working.\n')
+            '\nTo get graph plotted you need to put proper number as an argument!\n\n Use [-h] or [-i] option to get more info on module working.')
 
 
 if __name__ == "__main__":
