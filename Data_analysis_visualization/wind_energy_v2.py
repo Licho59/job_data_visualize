@@ -131,8 +131,11 @@ def month_names(months):
 
 
 def years_list():
-    return sorted(os.listdir(PATHNAME + '/Data/wind_csv'))
-    
+    whole_list = os.listdir(PATHNAME + '/Data/wind_csv')
+    if '.DS_Store' in whole_list:
+        return sorted(whole_list)[1:]
+    else:
+        return sorted(whole_list)
 
 def get_random_colors():
     colors = webcolors.CSS3_NAMES_TO_HEX
@@ -304,7 +307,7 @@ def wind_4c():
     for year in years:
         months = len(files_list(year)) + 1
         wind_grow = (wind_daily(year, months) / 10**3).resample('Y').sum()
-        trace = go.Bar(x=wind_grow.index.strftime('%Y'),
+        trace = go.Bar(x=wind_grow.index.strftime('%Y...'),
                        y=wind_grow['Wind_Daily(MWh)'], name=year)
         data.append(trace)
     layout = {'xaxis': {'title': 'Years'}, 'yaxis': {'title': 'Total Generation (GWh)'},
@@ -387,9 +390,9 @@ def parse_arguments():
     
     parser = argparse.ArgumentParser(description= plot_description)
     
-    parser.add_argument('graph_number', type=str, nargs='?',
-        choices=['1', '2', '3', '3a', '4', '4a', '4b', '4c', '5', '5a', '6'])
-    parser.add_argument('-y','--year', type=str, choices=years, default=years                       [-1], help='Provide a year number as an integer')
+    parser.add_argument('graph_number', type=str, nargs='?', choices=['1', '2', '3', '3a', '4', '4a', '4b', '4c', '5', '5a', '6'])
+    
+    parser.add_argument('-y', '--year', type=str, choices=years, default=years[-1], help='Provide a year number as an integer')
     parser.add_argument('-m', '--month', type=int, choices=list(range(1, 13)),
                         help='Provide a number of month for expected plot')
     parser.add_argument('-i', '--info', action='store_true',
@@ -432,7 +435,7 @@ def parse_arguments():
         wind_6(args.year)
     elif args.graph_number not in graph:
         print(
-            '\nTo get graph plotted you need to put proper number as an argument!\n\n Use [-h] or [-i] option to get more info on module working.')
+            '\nTo get graph plotted you need to put PROPER NUMBER as an argument!\n\n Use [-h] or [-i] option to get more info on module working.')
 
 
 if __name__ == "__main__":

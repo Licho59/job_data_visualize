@@ -109,6 +109,7 @@ venv.bak/
 # data folder
 /Data_analysis_visualization/Data
 /Seaborn/Data
+/All_Others
 
 
 # some files to not be tracked in git index
