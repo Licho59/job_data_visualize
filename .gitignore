@@ -108,14 +108,13 @@ venv.bak/
 
 # data folder
 /Data_analysis_visualization/Data
+/Numpy_Pandas/Data
+/Real_World_applications/input_data
+/Real_World_applications/output_data
+/opsd_energy
 /Seaborn/Data
 /All_Others
 
 
 # some files to not be tracked in git index
-/Data_analysis_visualization/scrape_mathematicans.ipynb
-/Data_analysis_visualization/scrape_mathematicans_exercises.ipynb
-/Data_analysis_visualization/wind_energy_analysis_ver_0.ipynb
-/Data_analysis_visualization/wind_energy.py
-/Data_analysis_visualization/tempor.py
-/Data_analysis_visualization/temp-plot.html
+/Data_analysis_visualization/early_stage
