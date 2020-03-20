@@ -108,6 +108,8 @@ venv.bak/
 
 # data folder
 /Data_analysis_visualization/Data
+/Data_analysis_visualization/wind_project/Data
+
 /Numpy_Pandas/Data
 /Real_World_applications/input_data
 /Real_World_applications/output_data
@@ -115,6 +117,5 @@ venv.bak/
 /Seaborn/Data
 /All_Others
 
-
 # some files to not be tracked in git index
-/Data_analysis_visualization/early_stage
+/Data_analysis_visualization/wind_project/early_stage
