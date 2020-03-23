@@ -107,9 +107,10 @@ venv.bak/
 .mypy_cache/
 
 # data folder
-/Daa_analysis_visualization/Data_analysis_other_data
+/Data_analysis_visualization/Results
+/Data_analysis_visualization/other_data
 /Data_analysis_visualization/wind_project/Data
-/Data_analysis_visualization/wind_project/early_stage
+/Data_analysis_visualization/wind_project/wind_early_stage
 /Numpy_Pandas/Data
 /Real_World_applications/input_data
 /Real_World_applications/output_data
