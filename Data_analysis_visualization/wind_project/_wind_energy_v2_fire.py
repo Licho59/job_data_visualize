@@ -1,7 +1,6 @@
 # coding: utf-8
-import os, re, time, argparse
+import os, re, time
 from glob import glob
-import colorlover as cl
 from datetime import date
 from random import randint, choice, shuffle
 import webcolors
@@ -71,7 +70,6 @@ def files_list(year):
             raise Exception(
                 f'There is no data for {year} year. You should try to download it from PSE webpage.')
     return ready_list
-    
 
 def save_clean_data(year, month_num):
     df = pd.read_csv(get_raw_filename(year, month_num),
