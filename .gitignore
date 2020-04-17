@@ -107,6 +107,7 @@ venv.bak/
 .mypy_cache/
 
 # data folder
+/.DS_Store
 /Data_analysis_visualization/.DS_Store
 /Data_analysis_visualization/Results
 /Data_analysis_visualization/other_data
