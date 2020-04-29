@@ -6,14 +6,12 @@ import webcolors
 import numpy as np
 import pandas as pd
 import cufflinks as cf
-from plotly.offline import iplot, plot
+from plotly.offline import plot
 import plotly.graph_objs as go
 import plotly.express as px
-import plotly.tools as tls
+from plotly import subplots
 import fire
 
-#cf.set_config_file(theme='ggplot', sharing='public', offline=True)
-# cf.go_online()
 
 PATHNAME = os.getcwd()
 
@@ -68,8 +66,7 @@ def files_list(year):
     if len(ready_list) == 0:
         if raw_files is None:
             if year <= datetime.now().year and year >= 2012:
-                print(
-                    f'There is no data for {year}. You should try to download it from PSE webpage.')
+                print(f'There is no data for {year}. You should try to download it from PSE webpage.')
             else:
                 print(f'Data for {year} year is not available.')
             return
@@ -149,6 +146,15 @@ def years_list():
     else:
         return y_list
 
+
+def checking_year(year):
+    """Helpful function to check if year argument is correct or to return random from the list if year is None."""
+    if year == None:
+        year = random.choice(years_list())
+    elif str(year) not in years_list():
+        return
+    return year
+'''
 def incorrect_year(year):
     """Helpful function for plotting to check if year argument is correct."""
     if str(year) not in years_list():
@@ -156,6 +162,7 @@ def incorrect_year(year):
         return
     else:
         return 'OK'
+'''
 
 def get_random_colors():
     """Return: set of colors to use in plotting functions."""
@@ -192,7 +199,6 @@ def current_year(year):
 Graphs presented below use 2 methods of plotting available in Plotly library - the main reason is a learning aspect.
 Names for graphs functions:
       wind_1 - daily wind generation for month
-      wind_1a - daily generation for month plotted in deafult web browser
       wind_2 - daily wind generation for year
       wind_3 - monthly wind generation for year
       wind_4 - growth of generation (cumulative) - line or bar - for given year
@@ -204,15 +210,18 @@ Names for graphs functions:
 
 Colors of graphs both for months and years are randomly chosen due to get_random_colors() (possible change)
 """
-
-def wind_1(year, month_number=None):
+    
+def wind_1(year=None, month_number=None):
     """
-    Input: number of month in range of 1-12 (or number for passed months of present year), by default it is
-    random chosen month when function is being called without argument.
+    Input: number of month in range of 1-12 (or number for passed months of present year), by default it is random chosen month when function is being called without argument.
     Return: graph presenting daily total wind generation in Poland for given or random chosen month. 
     """
-    if incorrect_year(year) is None:
+    year_ = checking_year(year)
+    if year_ is None:
+        print(f"No data for a given year: {year}")
         return
+    else:
+        year = year_
 
     if month_number is None:
         month_number = random.choice(files_list(year)[1][:-1])
@@ -221,6 +230,7 @@ def wind_1(year, month_number=None):
         return
     else:
         month_number = month_number
+
     month = month_name(month_number)
     wind_m = wind_daily(year, month_number) / 10**3
     m_avg = wind_m.iloc[:, 0].mean()
@@ -237,70 +247,20 @@ def wind_1(year, month_number=None):
                     'showarrow':True, 'arrowhead':1, 'ax':0, 'ay':-30}],
             'autosize': True,
             'title': f'Generation of Wind Power in {month} of {year}'}
-    iplot(go.Figure(data=data, layout=layout))
-
-    """
-    # preparing plots with plotly + cufflinks -figure() method of pandas dataframe can work without parameter 'asFigure=True',which is necessary when using dataframe with iplot() method
-    # It has some problem with being interactive in web browser but works in Jupyter Notebook!!!!!
-    
-    fig = wind_m.figure(kind='bar',
-                dimensions=[900, 450],
-                annotations=[dict(
-                     x=wind_m.index[-5],
-                     y=m_avg,
-                     text='Average Power=' + str(round(m_avg, 1)) + ' GWh',
-                     textangle=0,
-                     showarror=True,
-                     arrowhead=8,
-                     ax=0,
-                     ay=-40)],
-                hline=dict(y=wind_m.iloc[:, 0].mean(),
-                           color='red', dash='dash'),
-                xTitle='Days',
-                yTitle='Total Power (GWh)',
-                color=random.choice(get_random_colors()),
-                title='Generation of Wind Power for {} of {}'.format(month, year))
-    fig.show()
-    """
-
-def wind_1a(year, month_number=None):
-    """
-    Input: number of month in range of 1-12 (or number for passed months of present year), by default it is
-    random chosen month when function is being called without month argument.
-    Return: graph plotted in web browser, presenting daily wind generation in Poland for given or random chosen month. 
-    """
-    if incorrect_year(year) is None:
-        return
-    if month_number is None:
-        month_number = random.choice(files_list(year)[1][:-1])
-    elif month_number not in files_list(year)[1]:
-        print("Data for that month is not available or wrong parameter was given for month number.")
-        return
-    else:
-        month_number = month_number
-    wind_m = wind_daily(year, month_number) / 10**3
-    month = month_name(month_number)
-    m_avg = wind_m.iloc[:, 0].mean()
-
-    data = [go.Bar(x=wind_m.index, y=wind_m['Wind_Daily(MWh)'].values, marker={'color': 'orange'})]
-    layout = {'xaxis':{'title':'Days'},'yaxis':{'title':'Total Power (GWh)'},
-              'shapes': [{'type': 'line', 'x0': wind_m.index[0], 'x1':wind_m.index[-1], 'y0':m_avg, 'y1':m_avg,
-              'line':{'color': 'green', 'width': 2, 'dash': 'longdash'}}],
-              'annotations': [{'x': wind_m.index[-3], 'y': m_avg,
-                        'text': 'Avg Power=' + str(round(m_avg, 1)) + ' MWh',
-                        'showarrow':True, 'arrowhead':1, 'ax':0, 'ay':-30}],
-              'autosize': True,
-              'title': f'Generation of Wind Power in {month} of {year}'}
     plot(go.Figure(data=data, layout=layout))
 
-def wind_2(year):
+def wind_2(year=None):
     """
-    Return: plot presenting wind power generation for each day of given year
+    Input: Random chosen number of year from available in Data if year not given;
+    Return: plot presenting wind power generation for each day of given year.
     """
-    incorrect_year(year)
-
+    year_ = checking_year(year)
+    if not year_:
+        print(f"No data for a given year: {year}")
+        return
+        
     months = 'all'  # enables dataframe for all months of year
-    wind_y = wind_daily(year, months)/10**3 # to get TeraWattHours
+    wind_y = wind_daily(year_, months)/10**3 # to get TeraWattHours
     wind_y.rename(columns={"Wind_Daily(MWh)":"dailyMwh"}, inplace=True)
     y_avg = wind_y['dailyMwh'].mean()
     
@@ -309,7 +269,7 @@ def wind_2(year):
                 x = wind_y.index,
                 y='dailyMwh',
                 #color='dailyMwh',
-                title=dict(text="Generation of Wind Power in {}".format(year), x=0.5, y=0.95),
+                title=dict(text="Generation of Wind Power in {}".format(year_), x=0.5, y=0.95),
                 labels=dict(dailyMwh="Daily Generation (MWh)", x="Days"))
     fig.update_layout(
                     annotations=[dict(x=wind_y.index[-2], y=y_avg, text='Average Power=' + str(round(
@@ -319,17 +279,20 @@ def wind_2(year):
                     shapes=[dict(type='line', fillcolor='red', xref='paper', x0=0, x1=1, yref='y', y0=y_avg, y1=y_avg, )])
     fig.show()
 
-def wind_3(year):
+def wind_3(year=None):
     """
     Return: plot presenting wind power generation for each month of given year
     """
-    incorrect_year(year)
+    year_ = checking_year(year)
+    if not year_:
+        print(f"No data for a given year: {year}")
+        return
 
     months = 'all'
-    m_names = month_names(year)
+    m_names = month_names(year_)
 
     # dataframe resampled to months with index being months names
-    wind_monthly = wind_daily(year, months).resample('M').sum() / 10**3
+    wind_monthly = wind_daily(year_, months).resample('M').sum() / 10**3
     colors = random.choice(get_random_colors())
 
     data = [go.Bar(x=m_names, y=round(wind_monthly.iloc[:, 0], 3),
@@ -338,20 +301,24 @@ def wind_3(year):
             xaxis=dict(title='Months'),
             yaxis=dict(title='Total Power (GWh)'),
             title=dict(text="Monthly Wind Power Generation in {}".format(
-                   year), x= 0.5, y=0.9),
+                   year_), x= 0.5, y=0.9),
             showlegend=True,
-            #width=1000, height=600,
+            width=1000, height=600,
             )
-    iplot(go.Figure(data=data, layout=layout))
+    plot(go.Figure(data=data, layout=layout))
 
 
-def wind_4(year, plot='line'):
+def wind_4(year=None, plot='line'):
     """
     Return: linear or bar graph for cumulative amount of wind energy generated from the beginning of the year
     (some differences in plotting methods - with cufflinks tools and without it).
     Bar chart is returned with any kind of argument put after year number( for example: (2019, 1) or (2018,'bar'))
     """
-    incorrect_year(year)
+    year_ = checking_year(year)
+    if not year_:
+        print(f"No data for a given year: {year}")
+        return
+    year = year_
 
     months = 'all'
     # dataframe resampled to months with index being months names
@@ -361,49 +328,27 @@ def wind_4(year, plot='line'):
     # total value for the last day of the plot
     last_day = round(wind_grow.max()[0], 1)
     if plot == 'line':
-        fig = px.scatter(wind_grow,
-                    x=wind_grow.index,
-                    y='dailyMwh',
-                    color='dailyMwh',
-                    title=dict(text=f"Wind Power Cumulation in {year}",
-                        x=0.5, y=0.95),
-                    labels=dict(dailyMwh="Total Power (Gwh)", x="Days"))
-        fig.update_layout(
-            annotations=[dict(x=wind_grow.index[-5], y=last_day,
+        plot_f = px.scatter
+    else:
+        plot_f = px.bar
+    
+    fig = plot_f(wind_grow,
+                x=wind_grow.index,
+                y='dailyMwh',
+                color='dailyMwh',
+                title=dict(text=f"Wind Power Cumulation in {year}",
+                x=0.5, y=0.9),
+                labels=dict(dailyMwh="Total Power (Gwh)", x="Days"),
+                template='plotly_dark'
+                )
+    fig.update_layout(
+        annotations=[dict(x=wind_grow.index[-5], y=last_day,
                     text='Total=' + str(last_day) + ' GWh',
                     textangle=0, showarrow=True, arrowhead=1,
                     ax=0, ay=-20)]
                         )
-        fig.show()
-        """
-        return wind_grow.iplot(kind='scatter',
-                               width=2,
-                               annotations=[dict(
-                                   x=wind_grow.index[-1],
-                                   y=last_day,
-                                   text='Total=' + str(last_day) + ' GWh',
-                                   textangle=0,
-                                   showarror=True,
-                                   arrowhead=1,
-                                   ax=0,
-                                   ay=-20)],
-                               xTitle='Days', yTitle='Total Power (GWh)', colors='green',
-                               title=f"Wind Power Cumulation in {year}", theme='solar', dimensions=(800, 350))
-        """
-    else:
-        data = [go.Bar(x=wind_grow.index,
-                    y=wind_grow['dailyMwh'],
-                    name='Total=\n' + str(round(wind_grow.iloc[-1, 0], 1)) + ' GWh')]
-        layout = go.Layout(xaxis=dict(title='Days'),
-                    yaxis=dict(title='TotalPower (GWh)'),
-                    title="Growth of Wind Power Generation in {}".format(
-                               year),
-                    #height=450, width=900,
-                    showlegend=True,
-                    legend=dict(x=1.0, y=1.0))
-        iplot(go.Figure(data=data, layout=layout))
-
-
+    fig.show()       
+    
 def wind_4a():
     """
     Return: Separate linear graphs for each year in data folder with cumulative amount of wind energy generated).
@@ -412,7 +357,6 @@ def wind_4a():
 
     for year in years:
         wind_4(year)
-
 
 def wind_4b():
     """
@@ -445,9 +389,10 @@ def wind_4b():
     layout = {'xaxis': {'title': 'Days of year', 'nticks': 25, 'tickangle': -45, 'ticks': 'inside'},
               'yaxis': {'title': 'Total Power (TWh)'},
               'title': 'Cumulative Wind Power Generation in Years',
-              'width': 900, 'height': 550}
+              #'width': 900, 'height': 550
+             }
     fig = go.Figure(data=data, layout=layout)
-    iplot(fig)
+    plot(fig)
 
 
 def wind_4c():
@@ -455,24 +400,28 @@ def wind_4c():
     Return: Total yearly production of wind energy in GWh.
     """
     years = years_list()
-    data = []
-    months = 'all'
+    df = pd.DataFrame()
     for year in years:
-        wind_grow = (wind_daily(year, months) / 10**6).resample('Y').sum()
-        trace = go.Bar(x=wind_grow.index.strftime('%Y'),
-                       y=wind_grow['Wind_Daily(MWh)'], name=year)
-        data.append(trace)
-    layout = {'xaxis': {'title': 'Years'}, 'yaxis': {'title': 'Total Generation (TWh)'},
-              'title': 'Total Wind Power Generation in Years'}
-    iplot(go.Figure(data=data, layout=layout))
+        wind_year = (wind_daily(year, 'all') / 10**6).resample('Y').sum()
+        df[year] = wind_year['Wind_Daily(MWh)'].values
+    df_tidy = pd.melt(df, var_name='Year', value_name='Total Power')
+    fig = px.bar(df_tidy, x='Year', y='Total Power', color='Year',
+             labels={'Total Power': 'Total Power in TWh'},
+             title=dict(text='Wind Energy Total Production per Year', x=0.5, y=0.9))
+    fig.show()
 
-
-def wind_5(year):
+def wind_5(year=None):
     """
     Return: plot showing an average hour wind generation for given year
     """
-    df = wind_hourly(year, 'all')
-
+    year_ = checking_year(year)
+    if not year_:
+        print(f"No data for a given year: {year}")
+        return
+    else:
+        year = year_
+        
+    df = wind_hourly(year_, 'all')
     h_wind = df.pivot_table(index='Date', columns='Time',
                             values='Total_Wind_Power(MWh)').mean()
     hour_avg = h_wind.mean()
@@ -488,20 +437,24 @@ def wind_5(year):
               'xaxis': {'title': 'Hours'},
               'yaxis': {'title': 'Generation by Hour (MWh)'},
               'title': f"Average Wind Generation per Hour in {year}",
-              'width': 800, 'height': 400}
+              #'width': 800, 'height': 400
+              }
+    plot(go.Figure(data=data, layout=layout))
 
-    iplot(go.Figure(data=data, layout=layout))
-
-
-def wind_6(year):
+def wind_6(year=None):
     """
     Return: each month subplots for hour wind generation in given year
     """
-    incorrect_year(year)
+    year_ = checking_year(year)
+    if not year_:
+        print(f"No data for a given year: {year}")
+        return
+    else:
+        year = year_
 
     rows, cols = (4, 3)
     m_names = [month_name(m_num) for m_num in range(1, 13)]
-    fig = tls.make_subplots(rows=rows, cols=cols,
+    fig = subplots.make_subplots(rows=rows, cols=cols,
                             shared_xaxes=True, shared_yaxes=True,
                             subplot_titles=m_names,
                             print_grid=False)
@@ -542,53 +495,12 @@ def wind_6(year):
                        'xaxis': {'title': 'Hours'},
                        'yaxis': {'title': 'Avg Power'},
                        'showlegend': False,
-                       'width': 800,
-                       'height': 700
+                       #'width': 800, 'height': 700
                        },
                       autosize=True,
                       )
-    iplot(fig)
+    plot(fig)
 
 
 if __name__ == "__main__":
     fire.Fire()
-
-
-
-"""
-# returns daily wind generation for given month, if second argument not given month number is taken randomly
-wind_1(2019,4)
-
-# returns graph with wind power generation for given month of year but plotted in web browser
-wind_1a(2013)
-
-# returns daily wind generation for given year
-wind_2(2019)
-
-# returns separate bar graphs wiht monthly wind power generation for each year
-for i in years_list():
-    wind_3(i)
-
-# without optional second argument(any kind) linear graph is returned, in other cases function returns bar plot
-wind_4(2015, 'akuku')
-
-wind_4(2019)
-
-# returns separate linear graphs with wind power cumulation for each year
-wind_4a()
-
-# returns cumulative growth of wind generation for all years
-wind_4b()
-
-# returns total wind power generation for all years
-wind_4c()
-
-# returns bar plot with average (during 24 hours) wind power generation for given year
-wind_5(2015)
-
-# returns average hour wind generation for each month of given year
-wind_6(2019)
-'''
-Notebook seems to be complete without errors - ready to use that as python module(or package)
-and next develop to the form of python package and run from the command line(..to be continue)'''
-"""
