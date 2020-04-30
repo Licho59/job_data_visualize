@@ -5,7 +5,6 @@ from datetime import date, datetime, timedelta
 import webcolors
 import numpy as np
 import pandas as pd
-import cufflinks as cf
 from plotly.offline import plot
 import plotly.graph_objs as go
 import plotly.express as px
@@ -41,8 +40,7 @@ def get_raw_files_list(year):
         if file:
             raw_files.append(file)
             month_numbers.append(month_num)
-    if raw_files == []:
-        return
+    if raw_files == []: return
     return raw_files, month_numbers
 
 def transformed_file_path(year, month):
@@ -63,17 +61,15 @@ def files_list(year):
     """
     ready_list = sorted(glob(f'./Data/wind_ready/{year}/*.csv'))
     raw_files = get_raw_files_list(year)
+    month_numbers = raw_files[1]
     if len(ready_list) == 0:
         if raw_files is None:
             if year <= datetime.now().year and year >= 2012:
                 print(f'There is no data for {year}. You should try to download it from PSE webpage.')
-            else:
-                print(f'Data for {year} year is not available.')
             return
-        for month_number in raw_files[1]:
+        for month_number in month_numbers:
             save_clean_data(year, month_number)
         ready_list = sorted(glob(f'./Data/wind_ready/{year}/*.csv'))
-    month_numbers = raw_files[1]
     month_numbers.append('all')
     return ready_list, month_numbers
 
@@ -102,7 +98,6 @@ def wind_hourly(year, month_num):
     Return: dataframe either for month's wind power generation or for all months - to use for visualization, analysis, modelling.
     """
     months_numbers = files_list(year)[1]
-    # preparing dataframe either for all months in year or for only one month
     if month_num == 'all':
         df_all = [get_clean_data(year, month_num)
                   for month_num in months_numbers[:-1]]
@@ -122,7 +117,6 @@ def wind_daily(year, month_num):
     if month_num not in files_list(year)[1]:
         print("Data for that month is not available or wrong parameter was given for month number.")
         return
-    # resampled data from hours to days
     df_days = wind_hourly(year, month_num).resample('D').sum().iloc[:, [1]]
     df_days.rename(
         columns={'Total_Wind_Power(MWh)': 'Wind_Daily(MWh)'}, inplace=True)
@@ -146,7 +140,6 @@ def years_list():
     else:
         return y_list
 
-
 def checking_year(year):
     """Helpful function to check if year argument is correct or to return random from the list if year is None."""
     if year == None:
@@ -154,22 +147,11 @@ def checking_year(year):
     elif str(year) not in years_list():
         return
     return year
-'''
-def incorrect_year(year):
-    """Helpful function for plotting to check if year argument is correct."""
-    if str(year) not in years_list():
-        print(f"No data for a given year: {year}")
-        return
-    else:
-        return 'OK'
-'''
 
 def get_random_colors():
-    """Return: set of colors to use in plotting functions."""
+    """Return: random chosen set of colors to use in plotting functions."""
     colors = webcolors.CSS3_HEX_TO_NAMES
-    aborted_colors = ['white', 'mintcream', 'snow', 'lightyellow', 'whitesmoke', 'linen', 'beige', 'seashell',
-                      'floralwhite', 'oldlace', 'lavenderblush', 'ivory', 'ghostwhite', 'mediumslateblue',
-                      'aliceblue', 'lightgoldenrodyellow', 'honeydew', 'azure', 'cornsilk', 'black']
+    aborted_colors = ['white', 'mintcream', 'snow', 'lightyellow', 'whitesmoke', 'linen','beige','seashell','floralwhite','oldlace', 'lavenderblush','ivory','ghostwhite','mediumslateblue','aliceblue', 'lightgoldenrodyellow', 'honeydew', 'azure', 'cornsilk', 'black']
     palette = [colors[key] for key in colors]
     random.shuffle(palette)
     chosen_palette = [palette[i]
@@ -184,32 +166,16 @@ def current_year(year):
     # preparing dataframe for days in future where date is not available yet
     last_date = wind_grow_.index[-1]
     last_day_of_year = datetime(int(year), 12, 31)
-    # days until the end of year where data not yet available
     no_data_days = (last_day_of_year - last_date).days
     no_data_range = pd.date_range(
-        last_date + timedelta(days=1), last_date + timedelta(no_data_days), freq='D')
+        last_date + timedelta(days=1), periods=no_data_days-1, freq='D')
     data_vals = np.array([None] * no_data_days)
     df = pd.DataFrame({'Date': no_data_range, 'Wind_Daily(MWh)': data_vals})
     df.set_index('Date', inplace=True)
+    
     wind_grow = pd.concat([wind_grow_, df.iloc[:]], axis=0)
     return wind_grow
 
-
-"""
-Graphs presented below use 2 methods of plotting available in Plotly library - the main reason is a learning aspect.
-Names for graphs functions:
-      wind_1 - daily wind generation for month
-      wind_2 - daily wind generation for year
-      wind_3 - monthly wind generation for year
-      wind_4 - growth of generation (cumulative) - line or bar - for given year
-      wind_4a - cumulative growth of generation for given year
-      wind_4b - cumulative growth of generation for all years
-      wind_4c - total yearly power generation
-      wind_5 - average hour generation for year
-      wind_6 - hour wind generation for each month
-
-Colors of graphs both for months and years are randomly chosen due to get_random_colors() (possible change)
-"""
     
 def wind_1(year=None, month_number=None):
     """
@@ -264,7 +230,7 @@ def wind_2(year=None):
     wind_y.rename(columns={"Wind_Daily(MWh)":"dailyMwh"}, inplace=True)
     y_avg = wind_y['dailyMwh'].mean()
     
-    # implementing plotly.express library as a counterpart for cufflinks lib
+    # implementing plotly.express lib being a counterpart for cufflinks lib
     fig = px.bar(wind_y,
                 x = wind_y.index,
                 y='dailyMwh',
@@ -310,8 +276,7 @@ def wind_3(year=None):
 
 def wind_4(year=None, plot='line'):
     """
-    Return: linear or bar graph for cumulative amount of wind energy generated from the beginning of the year
-    (some differences in plotting methods - with cufflinks tools and without it).
+    Return: linear or bar graph for cumulative amount of wind energy generated from the beginning of the year.
     Bar chart is returned with any kind of argument put after year number( for example: (2019, 1) or (2018,'bar'))
     """
     year_ = checking_year(year)
@@ -476,14 +441,12 @@ def wind_6(year=None):
             text=[None, 'avg=' + str(int(day_avg)) + ' MWh'],
             textposition='middle left')
         if year != 2012:
-            if month_num <= (row * cols):
-                col += 1
+            if month_num <= (row * cols): col += 1
             else:
                 row += 1
                 col = 1
         else:
-            if month_num <= (row * cols):
-                col += 1
+            if month_num <= (row * cols): col += 1
             else:
                 row += 1
                 col = month_num % cols
@@ -491,14 +454,12 @@ def wind_6(year=None):
         fig.append_trace(trace_month_num, row=row, col=col)
         fig.append_trace(trace_avg, row=row, col=col)
 
-    fig.layout.update({'title': 'Average Hour Wind Generation in ' + f'{year}',
+    fig.layout.update({'title':'Average Hour Wind Generation in ' + f'{year}',
                        'xaxis': {'title': 'Hours'},
                        'yaxis': {'title': 'Avg Power'},
                        'showlegend': False,
                        #'width': 800, 'height': 700
-                       },
-                      autosize=True,
-                      )
+                       }, autosize=True)
     plot(fig)
 
 
