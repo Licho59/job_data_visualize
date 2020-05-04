@@ -15,7 +15,7 @@ import fire
 PATHNAME = os.getcwd()
 
 def get_file(template):
-    """Function checks if there is only 1 file for given template and returns path of file in /Data/wind_csv/ folder/. Returns None.
+    """Function checks if there is only 1 file for a given path template and returns path of file in /Data/wind_csv/ folder/. Returns None.
     """
     # glob function creates a list of files appropriate with template
     filenames = glob(template)
@@ -168,11 +168,10 @@ def current_year(year):
     last_day_of_year = datetime(int(year), 12, 31)
     no_data_days = (last_day_of_year - last_date).days
     no_data_range = pd.date_range(
-        last_date + timedelta(days=1), periods=no_data_days-1, freq='D')
+        last_date + timedelta(days=1), periods=no_data_days, freq='D')
     data_vals = np.array([None] * no_data_days)
     df = pd.DataFrame({'Date': no_data_range, 'Wind_Daily(MWh)': data_vals})
     df.set_index('Date', inplace=True)
-    
     wind_grow = pd.concat([wind_grow_, df.iloc[:]], axis=0)
     return wind_grow
 
@@ -192,7 +191,7 @@ def wind_1(year=None, month_number=None):
     if month_number is None:
         month_number = random.choice(files_list(year)[1][:-1])
     elif month_number not in files_list(year)[1]:
-        print("Data for that month is not available or wrong parameter was given for month number.")
+        print(f"Data for that month is not available or wrong parameter ({month_number}) was given for month number.")
         return
     else:
         month_number = month_number
@@ -235,14 +234,14 @@ def wind_2(year=None):
                 x = wind_y.index,
                 y='dailyMwh',
                 #color='dailyMwh',
-                title=dict(text="Generation of Wind Power in {}".format(year_), x=0.5, y=0.95),
+                title=dict(text="Day by day generation of wind power in {}".format(year_), x=0.5, y=0.95),
                 labels=dict(dailyMwh="Daily Generation (MWh)", x="Days"))
     fig.update_layout(
                     annotations=[dict(x=wind_y.index[-2], y=y_avg, text='Average Power=' + str(round(
                     wind_y.iloc[:, 0].mean(), 1)) + ' GWh',
                     textangle=0, showarrow=True, arrowhead=8,
                     ax=-60, ay=-20)],
-                    shapes=[dict(type='line', fillcolor='red', xref='paper', x0=0, x1=1, yref='y', y0=y_avg, y1=y_avg, )])
+                    shapes=[dict(type='line', line={'dash':'dot', 'color':'orange'}, xref='paper', x0=0, x1=1, yref='y', y0=y_avg, y1=y_avg, )])
     fig.show()
 
 def wind_3(year=None):
@@ -269,7 +268,7 @@ def wind_3(year=None):
             title=dict(text="Monthly Wind Power Generation in {}".format(
                    year_), x= 0.5, y=0.9),
             showlegend=True,
-            width=1000, height=600,
+            #width=1000, height=600,
             )
     plot(go.Figure(data=data, layout=layout))
 
@@ -463,5 +462,15 @@ def wind_6(year=None):
     plot(fig)
 
 
+def run(year=None, month=None):
+    wind_1(year, month)
+    wind_2(year)
+    wind_3(year)
+    wind_4(year)
+    wind_5(year)
+    wind_6(year)
+    wind_4b()
+    wind_4c()
+
 if __name__ == "__main__":
-    fire.Fire()
+    fire.Fire(run)
